@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Marquee distribuito</title>
+<style>
+  :root { --bg:#0f172a; --fg:#f8fafc; --accent:#38bdf8; --muted:#94a3b8; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f1f5f9; --fg:#0f172a; --accent:#0284c7; --muted:#475569; }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg);
+    font-family: system-ui, sans-serif; overflow:hidden; }
+  #info { position:fixed; top:16px; left:0; right:0; text-align:center;
+    font-size:1.2rem; font-weight:600; z-index:2; }
+  #info small { display:block; color:var(--muted); font-weight:400; font-size:.8rem; margin-top:4px; }
+  #viewport { position:absolute; inset:0; overflow:hidden; }
+  #text { position:absolute; top:50%; left:0; white-space:nowrap; font-size:140px;
+    font-weight:800; color:var(--accent); will-change:transform; transform-origin:0 50%; }
+  #border { position:fixed; inset:0; border:2px dashed var(--muted); opacity:.35; pointer-events:none; }
+</style>
+</head>
+<body>
+<div id="info">Connessione…<small id="status"></small></div>
+<div id="viewport"><div id="text"></div></div>
+<div id="border"></div>
+
+<script>
+// Ogni client rappresenta una "fetta" di uno stage virtuale largo (total × SLICE_W).
+// Il testo si muove sullo stage; il client N mostra solo la fetta N.
+const SLICE_W = 1000;  // larghezza logica di una fetta (indipendente dallo schermo reale)
+const SPEED   = 200;   // unità logiche al secondo
+
+const info = document.getElementById('info');
+const status = document.getElementById('status');
+const textEl = document.getElementById('text');
+
+let state = null;       // {index,total,text,startTime}
+let offset = 0;         // differenza orologio server - client
+let textWidth = 0;
+
+const ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+
+ws.onopen = () => { sync(); setInterval(sync, 5000); };
+ws.onclose = () => { info.firstChild.textContent = 'Disconnesso'; };
+
+function sync() {
+  if (ws.readyState === 1) ws.send(JSON.stringify({ type: 'sync', t0: Date.now() }));
+}
+
+ws.onmessage = (e) => {
+  const msg = JSON.parse(e.data);
+  if (msg.type === 'state') {
+    state = msg;
+    info.firstChild.textContent = `Sei il client ${msg.index} di ${msg.total}`;
+    status.textContent = `Porzione ${msg.index}/${msg.total} del testo`;
+    textEl.textContent = msg.text;
+    textWidth = textEl.offsetWidth;
+  } else if (msg.type === 'sync') {
+    const t1 = Date.now();
+    offset = msg.serverTime - (msg.t0 + t1) / 2; // compensa la latenza (RTT/2)
+  }
+};
+
+// Scala logica -> pixel reali (la fetta occupa sempre tutta la larghezza dello schermo)
+function currentScale() { return window.innerWidth / SLICE_W; }
+
+function frame() {
+  if (state) {
+    const scale = currentScale();
+    const stageW = state.total * SLICE_W;
+    const period = stageW + textWidth;               // da fuori a destra a fuori a sinistra
+    const t = (Date.now() + offset - state.startTime) / 1000;
+    const x = stageW - ((t * SPEED) % period);       // posizione del testo sullo stage
+    const localX = x - (state.index - 1) * SLICE_W;  // posizione nella MIA fetta
+    textEl.style.transform = `translate(${localX * scale}px, -50%) scale(${scale})`;
+  }
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+
+window.addEventListener('resize', () => {
+  if (state) textWidth = textEl.offsetWidth;
+});
+</script>
+</body>
+</html>
