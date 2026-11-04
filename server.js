@@ -4,7 +4,19 @@ const path = require('path');
 const { WebSocketServer } = require('ws');
 
 const PORT = process.env.PORT || 3000;
-const TEXT = 'WebSocket is a computer communications protocol, providing a bidirectional communication channel over a single Transmission Control Protocol (TCP) connection.';
+const TEXT_FILE = path.join(__dirname, 'testo.txt');
+
+function loadText() {
+  try {
+    // Rimuove gli a capo e spazi doppi, così il testo resta su una riga
+    return fs.readFileSync(TEXT_FILE, 'utf8').replace(/\s+/g, ' ').trim() + '   ';
+  } catch (err) {
+    console.error('Impossibile leggere testo.txt:', err.message);
+    return 'Testo non trovato   ';
+  }
+}
+
+let TEXT = loadText();
 const START_TIME = Date.now(); // riferimento temporale comune per l'animazione
 
 // --- Server HTTP statico (serve public/index.html) ---
