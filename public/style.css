@@ -1,0 +1,74 @@
+:root {
+    --bg: #0f172a;
+    --fg: #f8fafc;
+    --accent: #f838f5;
+    --muted: #94a3b8;
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg: #f1f5f9;
+        --fg: #0f172a;
+        --accent: #0284c7;
+        --muted: #475569;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: system-ui, sans-serif;
+    overflow: hidden;
+}
+
+#info {
+    position: fixed;
+    top: 16px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    z-index: 2;
+}
+
+#info small {
+    display: block;
+    color: var(--muted);
+    font-weight: 400;
+    font-size: .8rem;
+    margin-top: 4px;
+}
+
+#viewport {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+#text {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    white-space: nowrap;
+    font-size: 140px;
+    font-weight: 800;
+    color: var(--accent);
+    will-change: transform;
+    transform-origin: 0 50%;
+}
+
+#border {
+    position: fixed;
+    inset: 0;
+    border: 2px dashed var(--muted);
+    opacity: .35;
+    pointer-events: none;
+}

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Marquee distribuito</title>
+<link rel="stylesheet" href="style.css">
 <style>
   :root { --bg:#0f172a; --fg:#f8fafc; --accent:#38bdf8; --muted:#94a3b8; }
   @media (prefers-color-scheme: light) {
@@ -29,8 +30,8 @@
 <script>
 // Ogni client rappresenta una "fetta" di uno stage virtuale largo (total × SLICE_W).
 // Il testo si muove sullo stage; il client N mostra solo la fetta N.
-const SLICE_W = 1000;  // larghezza logica di una fetta (indipendente dallo schermo reale)
-const SPEED   = 200;   // unità logiche al secondo
+const SLICE_W = 1500;  // larghezza logica di una fetta (indipendente dallo schermo reale)
+const SPEED   = 100;   // unità logiche al secondo
 
 const info = document.getElementById('info');
 const status = document.getElementById('status');
